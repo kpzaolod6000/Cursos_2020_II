@@ -1,0 +1,2 @@
+/home/judal/Escritorio/COMPUTACION/Cursos_2020_II/EDA/semana_3/build/CMakeFiles/rebuild_cache.dir
+/home/judal/Escritorio/COMPUTACION/Cursos_2020_II/EDA/semana_3/build/CMakeFiles/edit_cache.dir

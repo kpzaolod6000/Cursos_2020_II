@@ -1,0 +1,52 @@
+una imagen es una matriz y cada dcelda de la matriz es un pixel 
+cada es de 0a255
+
+un bit 0 o 1 blanco o negro
+2 bit 2³ blanco ... negro
+3 bit 2³ 
+...
+a mas bit mas colores 
+hay mas varios 
+
+256 intensidades de canales desde 0 a 255, 8 bit 
+si bajo a 5 bits 32 gray levels
+
+si lo bajo mas 4 bits
+16 gray leves
+si bajo ocupa menos espacio pero pierde mas detalle en los colores
+con bit blanco y negro noma XD
+
+
+HDR
+no usa 8 sino 10 o 16
+ventaja es que tenga mas colores y la foto sale mas detallada
+desventaja es que el tamaño de la imagen crece
+
+2 bit RGB image
+la tarea es reducir la cantidad de colores
+En las hojas tienen todos los colores 8⁸ en el ultimo nivel para almacenar todos los colores que tengo en mi imagen
+uso el octree como un contenedor
+
+un pixel almacena 3 valores RGB
+el numero pasarlo a binario de ahi los coloco en una tabla
+
+generar un vector y de ahi cojer sus numeros y albergarlo en las hojas del octree (hijos de hijos), cuantos pixeles estan con ese color
+
+
+se susman los 3 colores del rgb se suma el pixel que esta osea (70,10,10) y seria (140,20,20)
+
+
+cuando quiero pintar quiere dividir el rgb(100,20,20) entre pixel count
+tengo que leer los colores y almacenar 
+
+
+REDUCCION
+la cuestion es eliminar los niveles de abajo, el padre 
+suma todos los colores entonces por ejemplo 
+pc = contador de colores
+(1,1,1) pc=1 entonces la suma seria (8,8,8) pc = 8
+
+reconstruir el color del padre es (R/pc,G/pc,B/pc)
+con paleta de colores
+RGBA
+

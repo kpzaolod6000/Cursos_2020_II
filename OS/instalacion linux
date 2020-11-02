@@ -1,0 +1,19 @@
+Existen varias formas de instalar Linux. A continuación comparto algunas opciones con los respectivos materiales.
+
+- Dual boot: instalar Linux en una computadora que ya tiene otro sistema instalado (Ej. Windows) de tal forma que se puedan bootear ambos sistemas. Video de ejemplo: https://www.youtube.com/watch?v=yMgzz1fvVCc
+
+- Máquina virtual: Instalar primero VirtualBox o VMWare y crear una máquina virtual. De esta manera Linux funciona como un proceso del sistema, pero con recursos limitados. Vídeo de ejemplo: https://www.youtube.com/watch?v=GEx046EHphI
+
+Existe una gran variedad de distribuciones, para todos los gustos. 
+Si hacen instalaciones Dual-boot con intención de usar Linux a largo plazo, algunas distribuciones interesantes:
+- Ubuntu (https://releases.ubuntu.com/20.04/)
+- Pop!_OS (https://pop.system76.com/)
+- Linux Arch (https://www.archlinux.org/)
+- Debian (https://www.debian.org/)
+
+Al instalar en una máquina virtual pueden usarse las mismas distribuciones, pero debido a los recursos limitados, hay algunas distribuciones más ligeras:
+- Ubuntu Mate (https://ubuntu-mate.org/)
+- Xubuntu (https://xubuntu.org/)
+- Lubuntu (https://lubuntu.net/)
+- Zoring OS Lite (https://zorinos.com/download/15/lite/)
+- Linux Lite (https://www.linuxliteos.com/)

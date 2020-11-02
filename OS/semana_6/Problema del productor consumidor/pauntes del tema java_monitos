@@ -1,0 +1,41 @@
+Sincronización en Java
+
+El lenguaje Java y su API han proporcionado un gran soporte para la sincronización de subprocesos desde los orígenes del lenguaje. En esta sección, primero cubrimos los monitores de Java, el mecanismo de sincronización original de Java. Luego cubrimos tres mecanismos adicionales que se introdujeron en la versión 1.5: bloqueos reentrantes, semáforos y variables de condición. Los incluimos porque representan los mecanismos de bloqueo y sincronización más comunes. Sin embargo, la API de Java proporciona muchas características que no cubrimos en este texto, por ejemplo, soporte para variables atómicas y la instrucción CAS, y recomendamos a los lectores interesados ​​que consulten la bibliografía para obtener más información.
+
+7.4.1 Monitores Java
+
+Java proporciona un mecanismo de concurrencia similar a un monitor para la sincronización de subprocesos. Ilustramos este mecanismo con la clase BoundedBuffer (Figura 7.9), que implementa una solución al problema del búfer acotado en el que el productor y el consumidor invocan los métodos insert () y remove (), respectivamente.
+
+Cada objeto en Java tiene asociado un solo candado. Cuando se declara que un método está sincronizado, llamar al método requiere poseer el bloqueo del objeto. Declaramos un método sincronizado colocando la palabra clave sincronizada en la definición del método, como con los métodos insert () y remove () en la clase BoundedBuffer.
+Invocar un método sincronizado requiere poseer el bloqueo en una instancia de objeto de BoundedBuffer. Si el bloqueo ya es propiedad de otro subproceso, el subproceso que llama al método sincronizado se bloquea y se coloca en el conjunto de entradas para el bloqueo del objeto. El conjunto de entrada representa el conjunto de subprocesos que esperan que el bloqueo esté disponible. Si el bloqueo está disponible cuando se llama a un método sincronizado, el hilo de llamada se convierte en el propietario del bloqueo del objeto y puede ingresar al método. El bloqueo se libera cuando el hilo sale del método.
+Si la entrada establecida para el bloqueo no está vacía cuando se libera el bloqueo, la JVM selecciona arbitrariamente un subproceso de este conjunto para que sea el propietario del bloqueo. (Cuando decimos "arbitrariamente", queremos decir que la especificación no requiere que los subprocesos de este conjunto se organicen en ningún orden en particular. Sin embargo, en la práctica, la mayoría de las máquinas virtuales ordenan los subprocesos en el conjunto de entradas de acuerdo con una política FIFO. ) La figura 7.10 ilustra cómo funciona el conjunto de entradas.
+Además de tener un bloqueo, cada objeto también tiene asociado un conjunto de espera que consta de un conjunto de subprocesos. Este conjunto de espera está inicialmente vacío. Cuando un hilo ingresa a un método sincronizado, posee el bloqueo del objeto. Sin embargo, este hilo puede determinar que no puede continuar debido a una determinada condición
+
+
+La cantidad de tiempo entre el momento en que se adquiere un bloqueo y el momento en que se libera se define como el alcance del bloqueo. Un método sincronizado que tiene solo un pequeño porcentaje de su código manipulando datos compartidos puede producir un alcance demasiado grande. En tal caso, puede ser mejor sincronizar solo el bloque de código que manipula los datos compartidos que sincronizar todo el método. Tal diseño da como resultado un alcance de bloqueo más pequeño. Por lo tanto, además de declarar métodos sincronizados, Java también permite la sincronización de bloques, como se ilustra a continuación. Solo el acceso al código de la sección crítica requiere la propiedad del bloqueo de objeto para este objeto.
+
+
+no se ha cumplido. Eso sucederá, por ejemplo, si el productor llama al método insert () y el búfer está lleno. Luego, el hilo liberará el bloqueo y esperará hasta que se cumpla la condición que le permitirá continuar.
+Cuando un hilo llama al método wait (), sucede lo siguiente:
+El hilo libera el candado del objeto.
+ El estado del hilo se establece en bloqueado.
+ El hilo se coloca en la espera establecida para el objeto.
+Considere el ejemplo de la figura 7.11. Si el productor llama al método insert () y ve que el búfer está lleno, llama al método wait (). Esta llamada libera el bloqueo, bloquea al productor y pone al productor en la espera establecida para el objeto. Debido a que el productor ha liberado el bloqueo, el consumidor finalmente ingresa al método remove (), donde libera espacio en el búfer para el productor.
+La figura 7.12 ilustra los conjuntos de entrada y espera para un bloqueo. (Tenga en cuenta que, aunque wait () puede generar una InterruptedException, elegimos ignorarla para mayor claridad y simplicidad del código).
+¿Cómo indica el hilo del consumidor que el productor puede proceder ahora?
+Normalmente, cuando un subproceso sale de un método sincronizado, el subproceso que sale libera solo el bloqueo asociado con el objeto, posiblemente eliminando un subproceso del conjunto de entradas y dándole la propiedad del bloqueo. Sin embargo, al final de los métodos insert () y remove (), tenemos una llamada al método notify ().
+La llamada para notificar ():
+
+Elige un subproceso arbitrario T de la lista de subprocesos en el conjunto de espera
+Mueve T del conjunto de espera al conjunto de entrada
+ Establece el estado de T de bloqueado a ejecutable
+
+T ahora es elegible para competir por el bloqueo con los otros hilos. Una vez que T ha recuperado el control del bloqueo, regresa de llamar a wait (), donde puede verificar el valor de count nuevamente. (Nuevamente, la selección de un subproceso arbitrario está de acuerdo con la especificación de Java; en la práctica, la mayoría de las máquinas virtuales Java ordenan los subprocesos en el conjunto de espera de acuerdo con una política FIFO).
+
+A continuación, describimos los métodos wait () y notificar () en términos de los métodos que se muestran en la Figura 7.11. Suponemos que el búfer está lleno y el bloqueo del objeto está disponible.
+• El productor llama al método insert (), ve que el bloqueo está disponible e ingresa el método. Una vez en el método, el productor determina que el búfer está lleno y llama a wait (). La llamada a wait () libera el bloqueo del objeto, establece el estado del productor en bloqueado y coloca al productor en el conjunto de espera para el objeto.
+• El consumidor finalmente llama e ingresa el método remove (), ya que el bloqueo para el objeto ahora está disponible. El consumidor elimina un elemento del búfer y llama a notificar (). Tenga en cuenta que el consumidor aún posee el candado del objeto.
+• La llamada a notificar () elimina al productor del conjunto de espera para el objeto, mueve al productor al conjunto de entrada y establece el estado del productor en ejecutable.
+• El consumidor sale del método remove (). Salir de este método libera el bloqueo del objeto.
+
+• El productor intenta volver a adquirir la cerradura y lo consigue. Reanuda la ejecución desde la llamada a wait (). El productor prueba el ciclo while, determina que hay espacio disponible en el búfer y procede con el resto del método insert (). Si no hay ningún hilo en espera establecido para el objeto, se ignora la llamada a notificar (). Cuando el productor sale del método, libera el bloqueo del objeto. Los mecanismos de sincronización, espera () y notificación () han sido parte de Java desde sus orígenes. Sin embargo, las revisiones posteriores de la API de Java introdujeron mecanismos de bloqueo mucho más flexibles y robustos, algunos de los cuales examinamos en las siguientes secciones.
